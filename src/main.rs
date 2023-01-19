@@ -1,10 +1,8 @@
 use std::rc::Rc;
 
-mod writer;
-use writer::{WriterKleisli, WriterMonad, writer_unit, writer_bind, compose_writers, log, StringLog};
-
-mod reader;
-use reader::{ReaderMonad, reader_fmap, reader_unit, reader_bind, load, ReaderKleisli};
+mod monads;
+use crate::monads::writer::{WriterKleisli, WriterMonad, writer_unit, writer_bind, compose_writers, log, StringLog};
+use crate::monads::reader::{ReaderMonad, reader_fmap, reader_unit, reader_bind, load, ReaderKleisli};
 
 fn main() {
 
