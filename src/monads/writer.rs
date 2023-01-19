@@ -1,8 +1,7 @@
 use std::fmt::Display;
 use std::rc::Rc;
 
-mod monoid;
-use monoid::{Monoid};
+use super::monoid::{Monoid};
 
 #[derive(Debug, Clone)]
 pub struct StringLog {
