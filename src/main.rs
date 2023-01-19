@@ -3,6 +3,9 @@ use std::rc::Rc;
 mod writer;
 use writer::{WriterKleisli, WriterMonad, writer_unit, writer_bind, compose_writers, log, StringLog};
 
+mod reader;
+use reader::{ReaderMonad, reader_fmap, reader_unit, reader_bind, load, ReaderKleisli};
+
 fn main() {
 
     fn add1_function(x: i64) -> WriterMonad<i64, StringLog> {
@@ -67,4 +70,11 @@ fn main() {
         writer_unit(val)
     );
     println!("{:?}", add_values(30));
+
+
+    let result: ReaderMonad<(i64, i64, i64), i64> = reader_do!(
+        cfg <- load(),
+        reader_unit(4 + cfg.1)
+    );
+    println!("{:?}", (result.run_reader)((0, 1, 2)));
 }
