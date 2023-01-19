@@ -30,13 +30,13 @@ pub fn writer_unit<Ta: Display + Copy, Tlog: Monoid<T = Tlog>>(a: Ta) -> WriterM
 
 
 // functor
-fn writer_fmap<Ta, Tb, Tlog: Monoid>(f_ab: fn(Ta) -> Tb, ma: WriterMonad<Ta, Tlog>) -> WriterMonad<Tb, Tlog> {
+pub fn writer_fmap<Ta, Tb, Tlog: Monoid>(f_ab: fn(Ta) -> Tb, ma: WriterMonad<Ta, Tlog>) -> WriterMonad<Tb, Tlog> {
     (f_ab(ma.0), ma.1)
 }
 
 
 // applicative
-fn writer_apply<Ta, Tb, Tlog: Monoid<T = Tlog>>(
+pub fn writer_apply<Ta, Tb, Tlog: Monoid<T = Tlog>>(
     mf: WriterMonad<fn(Ta) -> Tb, Tlog>,
     ma: WriterMonad<Ta, Tlog>
 ) -> WriterMonad<Tb, Tlog> {

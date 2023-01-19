@@ -1,4 +1,3 @@
-use std::net::Shutdown::Read;
 use std::rc::Rc;
 
 
@@ -68,10 +67,3 @@ macro_rules! reader_do {
 
     ($e:expr) => { $e };
 }
-
-// X <- load()
-// return X
-//
-// load() >>= (\X -> return X)
-
-    // ReaderMonad { run_reader: move |cfg| (return (load().run_reader)(cfg)).run_reader)(cfg)  }

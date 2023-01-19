@@ -1,10 +1,35 @@
 use std::rc::Rc;
 
 mod monads;
-use crate::monads::writer::{WriterKleisli, WriterMonad, writer_unit, writer_bind, compose_writers, log, StringLog};
-use crate::monads::reader::{ReaderMonad, reader_fmap, reader_unit, reader_bind, load, ReaderKleisli};
+use crate::monads::writer::{WriterKleisli, WriterMonad, writer_unit, writer_fmap, writer_apply, writer_bind, compose_writers, log, StringLog};
+use crate::monads::reader::{ReaderKleisli, ReaderMonad, reader_unit, reader_fmap, reader_apply, reader_bind, load};
+use crate::monads::state::{StateKleisli, StateMonad, state_unit, state_fmap, state_apply, state_bind, get, put};
+
 
 fn main() {
+    ///////////////////// Writer //////////////////////////////////
+
+    assert_eq!(
+        writer_fmap(|x| 2 * x, (5, "hello".to_string())),
+        (10, "hello".to_string()));
+    assert_eq!(
+        writer_fmap(|x| if x == 5 { "zero" } else { "one" }, (5, "hello".to_string())),
+        ("zero", "hello".to_string())
+    );
+    assert_eq!(
+        writer_apply((|x| 2*x, "hello".to_string()), (3, "goodbye".to_string())),
+        (6, "hello\ngoodbye".to_string())
+    );
+    assert_eq!(
+        writer_bind(
+            (1, "hello".to_string()),
+            WriterKleisli { kleisli: Rc::new( |x| (2*x, "goodbye".to_string())) }
+        ),
+        (2, "hello\ngoodbye".to_string())
+    );
+
+    ///////////////////// Reader //////////////////////////////////
+
 
     fn add1_function(x: i64) -> WriterMonad<i64, StringLog> {
         return (x + 1, StringLog { log: "added 1".to_string() })
@@ -75,4 +100,22 @@ fn main() {
         reader_unit(4 + cfg.1)
     );
     println!("{:?}", (result.run_reader)((0, 1, 2)));
+
+    fn concat<T: Clone>(vec0: &Vec<T>, vec1: &Vec<T>) -> Vec<T> {
+        let mut ret = vec0.to_vec();
+        for i in vec1.into_iter() {
+            ret.push(i.clone());
+        }
+        return ret
+    }
+
+    let act_on_state = state_do!(
+        s <- get(),
+        x = s[0],
+        new_s = concat(&s, &vec![x+1]),
+        put(new_s),
+        state_unit(x+10)
+    );
+    println!("{:?}", (act_on_state.run_state)(vec![0]));
+
 }
