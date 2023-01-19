@@ -37,7 +37,7 @@ fn writer_fmap<Ta, Tb, Tlog: Monoid>(f_ab: fn(Ta) -> Tb, ma: WriterMonad<Ta, Tlo
 
 
 // applicative
-fn writer_applicative<Ta, Tb, Tlog: Monoid<T = Tlog>>(
+fn writer_apply<Ta, Tb, Tlog: Monoid<T = Tlog>>(
     mf: WriterMonad<fn(Ta) -> Tb, Tlog>,
     ma: WriterMonad<Ta, Tlog>
 ) -> WriterMonad<Tb, Tlog> {
@@ -73,7 +73,6 @@ macro_rules! writer_binds {
 #[macro_export]
 macro_rules! writer_do {
     ($v:ident = $e:expr,  $($rest:tt)*) => { (|$v| { writer_do!($($rest)*) })($e) };
-    ($v:ident = $b:block, $($rest:tt)*) => { (|$v| { writer_do!($($rest)*) })($b) };
 
     ($v:ident <- $e:expr, $($rest:tt)*) => {
         writer_bind(
@@ -83,26 +82,10 @@ macro_rules! writer_do {
             }
         )
     };
-    ($v:ident <- $b:block, $($rest:tt)*) => {
-        writer_bind(
-            $b,
-            WriterKleisli {
-                kleisli: Rc::new( move |$v| { writer_do!($($rest)*) } )
-            }
-        )
-    };
 
     ($e:expr, $($rest:tt)*) => {
         writer_bind(
             $e,
-            WriterKleisli {
-                kleisli: Rc::new( move |_| { writer_do!($($rest)*) } )
-            }
-        )
-    };
-    ($b:block, $($rest:tt)*) => {
-        writer_bind(
-            $b,
             WriterKleisli {
                 kleisli: Rc::new( move |_| { writer_do!($($rest)*) } )
             }
