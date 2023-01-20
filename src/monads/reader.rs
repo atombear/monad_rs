@@ -6,8 +6,8 @@ pub struct ReaderMonad<Tcfg, Ta> {
 }
 
 
-pub fn reader_unit<Tcfg, Ta: 'static + Copy>(a: Ta) -> ReaderMonad<Tcfg, Ta> {
-    ReaderMonad { run_reader: Rc::new(move |cfg| a) }
+pub fn reader_unit<Tcfg, Ta: 'static + Clone>(a: Ta) -> ReaderMonad<Tcfg, Ta> {
+    ReaderMonad { run_reader: Rc::new(move |cfg| a.clone()) }
 }
 
 
@@ -30,11 +30,11 @@ pub struct ReaderKleisli<Tcfg, Ta, Tb> {
     pub kleisli: Rc<dyn Fn(Ta) -> ReaderMonad<Tcfg, Tb>>
 }
 
-pub fn reader_bind<Tcfg: 'static + Copy, Ta: 'static, Tb: 'static>(
+pub fn reader_bind<Tcfg: 'static + Clone, Ta: 'static, Tb: 'static>(
     ma: ReaderMonad<Tcfg, Ta>,
     k_ab: ReaderKleisli<Tcfg, Ta, Tb>
 ) -> ReaderMonad<Tcfg, Tb> {
-    ReaderMonad { run_reader: Rc::new( move |cfg| ((k_ab.kleisli)((ma.run_reader)(cfg)).run_reader)(cfg) ) }
+    ReaderMonad { run_reader: Rc::new( move |cfg| ((k_ab.kleisli)((ma.run_reader)(cfg.clone())).run_reader)(cfg.clone()) ) }
 }
 
 
