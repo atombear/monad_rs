@@ -93,3 +93,52 @@ macro_rules! state_do {
 
     ($e:expr) => { $e };
 }
+
+
+// tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmap() {
+        let s0 = state_fmap(
+            Rc::new(|x| x + 1),
+            StateMonad { run_state: Rc::new(|s| (10, s)) }
+        );
+        assert_eq!((s0.run_state)((0, 0)), (11, (0, 0)));
+    }
+
+    #[test]
+    fn test_apply() {
+        let s0 = state_apply(
+            StateMonad { run_state: Rc::new(|s| (Rc::new(|x| x + 2), s)) },
+            StateMonad { run_state: Rc::new(|s| (10, s)) }
+        );
+        assert_eq!((s0.run_state)((0, 0)), (12, (0, 0)));
+    }
+
+    #[test]
+    fn test_bind() {
+        let s0 = state_bind(
+            StateMonad { run_state: Rc::new(|s| (10, s)) },
+            StateKleisli {
+                kleisli: Rc::new( move |x|
+                    StateMonad { run_state: Rc::new(move |s| (2 * x, s))
+                })
+            }
+        );
+        assert_eq!((s0.run_state)((0, 0)), (20, (0, 0)));
+    }
+
+    #[test]
+    fn test_do() {
+        let run_game: StateMonad<(i64, i64), i64> = state_do!(
+            st <- get(),
+            winner = 0,
+            put(if winner == 0 { (st.0+1, st.1) } else { (st.0, st.1+1) }),
+            state_unit(winner)
+        );
+        assert_eq!((run_game.run_state)((10, 13)), (0, (11, 13)));
+    }
+}

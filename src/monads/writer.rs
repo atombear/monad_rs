@@ -108,3 +108,56 @@ pub fn compose_writers<Ta: 'static, Tb: 'static, Tc: 'static, Tlog: Monoid<T = T
     }
 
 }
+
+
+// tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmap() {
+        assert_eq!(
+            writer_fmap(|x| 2 * x, (5, "hello".to_string())),
+            (10, "hello".to_string()));
+        assert_eq!(
+            writer_fmap(|x| if x == 5 { "zero" } else { "one" }, (5, "hello".to_string())),
+            ("zero", "hello".to_string())
+        );
+    }
+
+    #[test]
+    fn test_apply() {
+        assert_eq!(
+            writer_apply((|x| 2*x, "hello".to_string()), (3, "goodbye".to_string())),
+            (6, "hello\ngoodbye".to_string())
+        );
+    }
+
+    #[test]
+    fn test_bind() {
+        assert_eq!(
+            writer_bind(
+                (1, "hello".to_string()),
+                WriterKleisli { kleisli: Rc::new( |x| (2*x, "goodbye".to_string())) }
+            ),
+            (2, "hello\ngoodbye".to_string())
+        );
+    }
+
+    #[test]
+    fn test_do() {
+        let do_calculation = |x| writer_do!(
+            log(format!("received number {}", x)),
+            x0 = x + 10,
+            log("added 10 to the number".to_string()),
+            x1 = 2 * x0,
+            log("multiplied result by 2".to_string()),
+            writer_unit(x1)
+        );
+        assert_eq!(
+            do_calculation(5),
+            (30, "received number 5\nadded 10 to the number\nmultiplied result by 2\n".to_string())
+        );
+    }
+}
