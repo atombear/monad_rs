@@ -50,6 +50,9 @@ pub fn load<Tcfg>() -> ReaderMonad<Tcfg, Tcfg> {
 
 #[macro_export]
 macro_rules! reader_do {
+    // trailing comma
+    () => {};
+
     ($v:ident = $e:expr,  $($rest:tt)*) => { (|$v| { reader_do!($($rest)*) })($e) };
 
     ($v:ident <- $e:expr, $($rest:tt)*) => {

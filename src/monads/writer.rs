@@ -79,6 +79,9 @@ pub fn compose_writers<Ta: 'static, Tb: 'static, Tc: 'static, Tlog: Monoid<T = T
 
 #[macro_export]
 macro_rules! writer_do {
+    // trailing comma
+    () => {};
+
     ($v:ident = $e:expr,  $($rest:tt)*) => { (|$v| { writer_do!($($rest)*) })($e) };
 
     ($v:ident <- $e:expr, $($rest:tt)*) => {
