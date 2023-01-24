@@ -7,25 +7,29 @@ pub struct ReaderMonad<Tcfg, Ta> {
 
 
 pub fn reader_unit<Tcfg, Ta: 'static + Clone>(a: Ta) -> ReaderMonad<Tcfg, Ta> {
-    ReaderMonad { run_reader: Rc::new(move |cfg| a.clone()) }
+    ReaderMonad { run_reader: Rc::new(move |cfg: Tcfg| -> Ta { a.clone() } ) }
 }
 
 
+// functor
 pub fn reader_fmap<Tcfg: 'static, Ta: 'static, Tb: 'static>(
     f_ab: Rc<dyn Fn(Ta) -> Tb>,
     ma: ReaderMonad<Tcfg, Ta>
 ) -> ReaderMonad<Tcfg, Tb> {
-    ReaderMonad { run_reader: Rc::new( move |cfg| f_ab((ma.run_reader)(cfg)) ) }
+    ReaderMonad { run_reader: Rc::new( move |cfg: Tcfg| -> Tb { f_ab((ma.run_reader)(cfg)) } ) }
 }
 
 
+// applicative
 pub fn reader_apply<Tcfg: 'static + Copy, Ta: 'static, Tb: 'static>(
     mf: ReaderMonad<Tcfg, Rc<dyn Fn(Ta) -> Tb>>,
     ma: ReaderMonad<Tcfg, Ta>
 ) -> ReaderMonad<Tcfg, Tb> {
-    ReaderMonad { run_reader: Rc::new( move |cfg| ((mf.run_reader)(cfg))((ma.run_reader)(cfg)) ) }
+    ReaderMonad { run_reader: Rc::new( move |cfg: Tcfg| -> Tb { ((mf.run_reader)(cfg))((ma.run_reader)(cfg)) } ) }
 }
 
+
+// monad
 pub struct ReaderKleisli<Tcfg, Ta, Tb> {
     pub kleisli: Rc<dyn Fn(Ta) -> ReaderMonad<Tcfg, Tb>>
 }
@@ -34,12 +38,13 @@ pub fn reader_bind<Tcfg: 'static + Clone, Ta: 'static, Tb: 'static>(
     ma: ReaderMonad<Tcfg, Ta>,
     k_ab: ReaderKleisli<Tcfg, Ta, Tb>
 ) -> ReaderMonad<Tcfg, Tb> {
-    ReaderMonad { run_reader: Rc::new( move |cfg| ((k_ab.kleisli)((ma.run_reader)(cfg.clone())).run_reader)(cfg.clone()) ) }
+    ReaderMonad { run_reader: Rc::new( move |cfg: Tcfg| -> Tb { ((k_ab.kleisli)((ma.run_reader)(cfg.clone())).run_reader)(cfg.clone()) } ) }
 }
 
 
+// extracts the configuration from the monadic context to be used.
 pub fn load<Tcfg>() -> ReaderMonad<Tcfg, Tcfg> {
-    ReaderMonad { run_reader: Rc::new(|cfg| cfg) }
+    ReaderMonad { run_reader: Rc::new(|cfg: Tcfg| -> Tcfg { cfg } ) }
 }
 
 
