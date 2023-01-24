@@ -2,9 +2,24 @@ use std::i64;
 use std::rc::Rc;
 
 mod monads;
-use crate::monads::writer::{WriterKleisli, WriterMonad, writer_unit, writer_fmap, writer_apply, writer_bind, compose_writers, log, StringLog};
+use crate::monads::monoid::Monoid;
+use crate::monads::writer::{WriterKleisli, WriterMonad, writer_unit, writer_fmap, writer_apply, writer_bind, compose_writers, log};
 use crate::monads::reader::{ReaderKleisli, ReaderMonad, reader_unit, reader_fmap, reader_apply, reader_bind, load};
 use crate::monads::state::{StateKleisli, StateMonad, state_unit, state_fmap, state_apply, state_bind, get, put};
+
+
+#[derive(Debug, Clone)]
+pub struct StringLog {
+    pub log: String
+}
+
+
+impl Monoid for StringLog {
+    type T = StringLog;
+    fn mempty() -> Self::T { StringLog { log: "".to_string() } }
+    fn mappend(&self, other: Self::T) -> Self::T { StringLog { log: format!("{}\n{}", self.log, other.log) } }
+}
+
 
 
 fn main() {
