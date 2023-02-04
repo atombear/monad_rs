@@ -76,7 +76,6 @@ pub fn put<Ts: 'static + Clone>(s: Ts) -> StateMonad<Ts, ()> {
 
 #[macro_export]
 macro_rules! state_do {
-    // trailing comma
     () => {};
 
     ($v:ident = $e:expr,  $($rest:tt)*) => { (|$v| { state_do!($($rest)*) })($e) };
@@ -145,7 +144,7 @@ mod tests {
             st <- get(),
             winner = 0,
             put(if winner == 0 { (st.0+1, st.1) } else { (st.0, st.1+1) }),
-            state_unit(winner),
+            state_unit(winner)
         );
         assert_eq!((run_game.run_state)((10, 13)), (0, (11, 13)));
     }
