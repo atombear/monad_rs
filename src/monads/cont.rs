@@ -210,6 +210,4 @@ mod tests {
         let partial: ContMonad<i32, i32> = do_calc0(cont_unit(10));
         assert_eq!(cont_eval(partial), 112);
     }
-
-
 }
